@@ -1,18 +1,33 @@
 import React from "react";
-import io from "socket.io-client";
+import reducer from "./reducer";
+import socket from "./socket";
 
-const socket = io("http://localhost:9991/rooms");
+import Form from "./components/Form.jsx";
+
+// import socket from "./socket";
+// const socket = io.connect("http://localhost:9991");
 
 function App() {
-  const connecteSocked = () => {
-    // const socket = io();
-    console.log("jdnzdjv");
+  const [state, dispatch] = React.useReducer(reducer, {
+    joined: false,
+    roomId: null,
+    userName: null,
+  });
+
+  const onLogin = (obj) => {
+    dispatch({
+      type: "JOINED",
+      payload: obj,
+    });
+    socket.emit("ROOM:JOIN", obj);
+    // socket.emit();
   };
 
+  window.socket = socket;
+
+  console.log(state);
   return (
-    <>
-      <button onClick={connecteSocked}>BUTTON</button>
-    </>
+    <div className="wrapper">{!state.joined && <Form onLogin={onLogin} />}</div>
   );
 }
 

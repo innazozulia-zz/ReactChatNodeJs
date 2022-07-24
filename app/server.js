@@ -1,24 +1,22 @@
 const express = require("express");
-const { Server } = require("socket.io");
-
 const app = express();
-const server = require("http").Server(app);
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
+
+app.use(cors());
+
+app.use(express.json());
+
+const server = http.createServer(app);
 
 const io = require("socket.io")(server, {
-  transports: ["websocket", "polling", "flashsocket"],
+  cors: { origin: "http://localhost:3003" },
 });
 
-// const io = require("socket.io")(server, {
-//   cors: {
-//     origin: "http://localhost:9991",
-//     credentials: true,
-//   },
-// });
-
-// const io = require("socket.io")(server);
-
-const cors = require("cors");
-io.use(cors());
+server.listen(9991, () => {
+  console.log("SERVER");
+});
 
 const rooms = new Map();
 
@@ -26,18 +24,25 @@ app.get("/rooms", (req, res) => {
   res.json(rooms);
 });
 
-io.on("connection", function (client) {
-  console.log("connected");
-  client.emit("message", "Some thing to show");
+app.post("/rooms", (req, res) => {
+  const { roomId, userName } = req.body;
+  if (!rooms.has(roomId)) {
+    rooms.set(
+      roomId,
+      new Map([
+        ["users", new Map()],
+        ["messages", []],
+      ])
+    );
+  }
+  res.send();
+  //   res.json(...rooms.keys());
+  console.log("room ");
 });
 
-// io.on("connection", (socket) => {
-//   console.log("socket connected", socket.id);
-// });
-
-server.listen(9991, (error) => {
-  if (error) {
-    throw Error(error);
-  }
-  console.log("SERVER");
+io.on("connection", (socket) => {
+  socket.on("ROOM:JOIN ", (data) => {
+    console.log(data);
+  });
+  console.log("socket connected", socket.id);
 });
